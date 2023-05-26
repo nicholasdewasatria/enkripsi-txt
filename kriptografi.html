@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enkripsi dan Deskripsi File Teks</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+</head>
+<body>
+    <h1>Enkripsi dan Deskripsi File Teks</h1>
+
+    <input type="file" id="fileInput" accept=".txt" />
+    <br><br>
+    <button onclick="encryptFile()">Enkripsi</button>
+    <button onclick="decryptFile()">Deskripsi</button>
+
+    <script>
+        var key = CryptoJS.enc.Utf8.parse('kunci_rahasia_16'); // Kunci enkripsi/ deskripsi, harus 16, 24, atau 32 byte
+
+        function encryptFile() {
+            var fileInput = document.getElementById('fileInput');
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                var plaintext = e.target.result;
+                var ciphertext = CryptoJS.AES.encrypt(plaintext, key, { mode: CryptoJS.mode.ECB }).toString();
+
+                var encryptedFile = new File([ciphertext], file.name.replace('.txt', '_encrypted.txt'), { type: 'text/plain' });
+                saveFile(encryptedFile);
+            };
+
+            reader.readAsText(file);
+        }
+
+        function decryptFile() {
+            var fileInput = document.getElementById('fileInput');
+            var file = fileInput.files[0];
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                var ciphertext = e.target.result;
+                var bytes = CryptoJS.AES.decrypt(ciphertext, key, { mode: CryptoJS.mode.ECB });
+                var plaintext = bytes.toString(CryptoJS.enc.Utf8);
+
+                var decryptedFile = new File([plaintext], file.name.replace('.txt', '_decrypted.txt'), { type: 'text/plain' });
+                saveFile(decryptedFile);
+            };
+
+            reader.readAsText(file);
+        }
+
+        function saveFile(file) {
+            var downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(file);
+            downloadLink.download = file.name;
+            downloadLink.click();
+        }
+    </script>
+</body>
+</html>
