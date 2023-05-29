@@ -6,12 +6,14 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <style>
         body {
-            background: linear-gradient(to bottom, #6a00ff, #9000ff);
-  overflow: hidden;
+            background-color: black;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            color: lime;
         }
 
         .container {
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(0, 0, 0, 0.8);
             padding: 20px;
             border-radius: 5px;
         }
@@ -46,42 +48,72 @@
         .loading-animation img {
             width: 100px;
         }
+
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: lime;
+            font-size: 24px;
+            z-index: 999;
+        }
+        
+        .encrypt-button {
+            background-color: blue !important;
+        }
+        
+        .decrypt-button {
+            background-color: red !important;
+        }
     </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4">Enkripsi dan Deskripsi File Teks</h1>
+        <h1 class="text-center mb-4">Enkripsi dan Deskripsi File .txt</h1>
 
         <div class="form-group">
-            <label for="fileInput">Pilih File Teks:</label>
+            <label for="fileInput" style="color: lime;">Pilih File Teks:</label>
             <input type="file" id="fileInput" class="form-control-file" accept=".txt" />
         </div>
 
-        <div class="text-center">
-            <button onclick="encryptFile()" class="btn btn-primary mr-2">Enkripsi</button>
-            <button onclick="decryptFile()" class="btn btn-primary">Deskripsi</button>
+        <div class="form-group">
+            <label for="encryptionKey" style="color: lime;">Kunci Enkripsi:</label>
+            <input type="text" id="encryptionKey" class="form-control" style="background-color: black; color: lime;" />
         </div>
 
-        <div class="message mt-3" id="successMessage">
-            <div class="loading-animation">
-                <img src="C:\Users\HP\Desktop\KULIAH\SEMESTER 6\KEAMANAN KOMPUTER\kriptografi .txt\loading.gif" alt="Loading Animation">
-                <p>Sedang memproses...</p>
-            </div>
-            <p class="success-message"></p>
+        <div class="form-group">
+            <label for="decryptionKey" style="color: lime;">Kunci Deskripsi:</label>
+            <input type="text" id="decryptionKey" class="form-control" style="background-color: black; color: lime;" />
+        </div>
+
+        <div class="text-center">
+            <button onclick="encryptFile()" class="btn btn-primary mr-2 encrypt-button">Enkripsi</button>
+            <button onclick="decryptFile()" class="btn btn-primary decrypt-button">Deskripsi</button>
         </div>
     </div>
 
-    <script>
-        var key = CryptoJS.enc.Utf8.parse('kunci_rahasia_16'); // Kunci enkripsi/ deskripsi, harus 16, 24, atau 32 byte
+    <div class="message mt-3" id="successMessage">
+        <div class="loading-animation">
+            <img src="loading.gif" alt="Loading Animation">
+            <p>Sedang memproses...</p>
+        </div>
+        <p class="success-message"></p>
+    </div>
 
+    <script>
         function encryptFile() {
             var fileInput = document.getElementById('fileInput');
             var file = fileInput.files[0];
             var reader = new FileReader();
+            var encryptionKey = document.getElementById('encryptionKey').value; // Ambil nilai kunci enkripsi dari input
 
             reader.onload = function (e) {
                 var plaintext = e.target.result;
-                var ciphertext = CryptoJS.AES.encrypt(plaintext, key, { mode: CryptoJS.mode.ECB }).toString();
+                var ciphertext = CryptoJS.AES.encrypt(plaintext, encryptionKey, { mode: CryptoJS.mode.ECB }).toString();
 
                 var encryptedFile = new File([ciphertext], file.name.replace('.txt', '_encrypted.txt'), { type: 'text/plain' });
                 saveFile(encryptedFile);
@@ -100,10 +132,11 @@
             var fileInput = document.getElementById('fileInput');
             var file = fileInput.files[0];
             var reader = new FileReader();
+            var decryptionKey = document.getElementById('decryptionKey').value; // Ambil nilai kunci deskripsi dari input
 
             reader.onload = function (e) {
                 var ciphertext = e.target.result;
-                var bytes = CryptoJS.AES.decrypt(ciphertext, key, { mode: CryptoJS.mode.ECB });
+                var bytes = CryptoJS.AES.decrypt(ciphertext, decryptionKey, { mode: CryptoJS.mode.ECB });
                 var plaintext = bytes.toString(CryptoJS.enc.Utf8);
 
                 var decryptedFile = new File([plaintext], file.name.replace('.txt', '_decrypted.txt'), { type: 'text/plain' });
@@ -137,17 +170,17 @@
         }
 
         function showMessage(message, type) {
-            var successMessage = document.querySelector('.success-message');
+            var successMessage = document.createElement('div');
+            successMessage.classList.add('success-message');
             successMessage.textContent = message;
-            successMessage.classList.add(type);
-            successMessage.style.display = 'block';
+
+            var body = document.querySelector('body');
+            body.appendChild(successMessage);
 
             setTimeout(function () {
                 successMessage.style.animation = 'fadeOut 1s';
                 setTimeout(function () {
-                    successMessage.style.display = 'none';
-                    successMessage.style.animation = '';
-                    successMessage.classList.remove(type);
+                    successMessage.remove();
                 }, 1000);
             }, 2000);
         }
